@@ -1,0 +1,34 @@
+{
+    "name": "my-angular",
+    "version": "0.0.0",
+    "description": "A try in implementing my own very simple angular framework",
+    "directories": {
+        "src": "src",
+        "test": "test"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wendannor/my-angular.git"
+    },
+    "keywords": [
+        "angular"
+    ],
+    "author": "Jordan SARRE",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/wendannor/my-angular/issues"
+    },
+    "homepage": "https://github.com/wendannor/my-angular",
+    "devDependencies": {
+        "grunt-contrib-jshint": "~0.8.0",
+        "grunt-contrib-testem": "^0.5.16",
+        "sinon": "^1.14.1"
+    },
+    "dependencies": {
+        "lodash": "~3.5.0",
+        "jquery": "~2.1.0-beta3"
+    }
+}
