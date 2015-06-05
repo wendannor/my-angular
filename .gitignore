@@ -47,3 +47,6 @@ crashlytics-build.properties
 
 
 node_modules/
+
+#emacs tmp files
+*~
