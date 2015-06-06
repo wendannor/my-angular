@@ -1,16 +1,20 @@
 'use strict';
 
+function initWatchVal() {
+}
+
 function Scope() {
 
     this.$$watchers = [];
-    
+
 }
 
 Scope.prototype.$watch = function (watchFn, listenerFn) {
 
     var watcher = {
         watchFn: watchFn,
-        listenerFn: listenerFn
+        listenerFn: listenerFn || function () {},
+        lastValue: initWatchVal
     };
     this.$$watchers.push(watcher);
 };
@@ -24,7 +28,7 @@ Scope.prototype.$digest = function () {
         oldValue = watcher.lastValue;
         if (newValue !== oldValue) {
             watcher.lastValue = newValue;
-            watcher.listenerFn(oldValue, newValue, _this);
+            watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), _this);
         }
     });
 };
