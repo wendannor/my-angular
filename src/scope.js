@@ -18,6 +18,7 @@ Scope.prototype.$watch = function (watchFn, listenerFn) {
         lastValue: initWatchVal
     };
     this.$$watchers.push(watcher);
+    this.$$lastDirtyWatch = null;
 };
 
 Scope.prototype.$$digestOnce = function () {
@@ -29,9 +30,12 @@ Scope.prototype.$$digestOnce = function () {
         newValue = watcher.watchFn(_this);
         oldValue = watcher.lastValue;
         if (newValue !== oldValue) {
+            _this.$$lastDirtyWatch = watcher;
             watcher.lastValue = newValue;
             watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), _this);
             dirty = true;
+        } else if (_this.$$lastDirtyWatch === watcher) {
+            return false;
         }
     });
     return dirty;
@@ -42,11 +46,13 @@ Scope.prototype.$digest = function () {
     
     // time to live, number of cycles we allow the digest loop to make
     var ttl = 10;
+    
+    this.$$lastDirtyWatch = null;
     do {
         dirty = this.$$digestOnce();
         ttl--;
     } while (dirty && ttl !== 0);
-    
+
     if (ttl === 0) {
         throw '10 digest iterations reached';
     }
