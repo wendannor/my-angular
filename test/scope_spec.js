@@ -106,7 +106,7 @@ describe('Scope', function () {
 
         it('triggers chained watchers in the same digest', function () {
             scope.name = 'John';
-            
+
             scope.$watch(function (scope) {
                 return scope.nameUpper;
             }, function (newValue, oldValue, scope) {
@@ -114,7 +114,7 @@ describe('Scope', function () {
                     scope.initial = newValue.substring(0, 1) + '.';
                 }
             });
-            
+
             scope.$watch(function (scope) {
                 return scope.name;
             }, function (newValue, oldValue, scope) {
@@ -122,7 +122,7 @@ describe('Scope', function () {
                     scope.nameUpper = newValue.toUpperCase();
                 }
             });
-            
+
             scope.$digest();
             expect(scope.initial).toBe('J.');
             scope.name = 'Bob';
@@ -133,7 +133,7 @@ describe('Scope', function () {
         it('gives up on the watches after 10 iterations', function () {
             scope.counterA = 0;
             scope.counterB = 0;
-            
+
             scope.$watch(function (scope) {
                 return scope.counterA;
             }, function (newValue, oldValue, scope) {
@@ -144,14 +144,16 @@ describe('Scope', function () {
             }, function (newValue, oldValue, scope) {
                 scope.counterA++;
             });
-            
-            expect((function(){scope.$digest()})).toThrow();
+
+            expect((function () {
+                scope.$digest()
+            })).toThrow();
         });
 
         it('ends the digest when the last watch is clean', function () {
             scope.array = _.range(100);
             var watchExecutions = 0;
-            
+
             _.times(100, function (i) {
                 scope.$watch(function (scope) {
                     watchExecutions++;
@@ -159,10 +161,10 @@ describe('Scope', function () {
                 }, function (newValue, oldValue, scope) {
                 });
             });
-            
+
             scope.$digest();
             expect(watchExecutions).toBe(200);
-            
+
             scope.array[0] = 420;
             scope.$digest();
             expect(watchExecutions).toBe(301);
@@ -171,7 +173,7 @@ describe('Scope', function () {
         it('does not end so that new watches are not run', function () {
             scope.aValue = 'abc';
             scope.counter = 0;
-            
+
             scope.$watch(function (scope) {
                 return scope.aValue;
             }, function (newValue, oldValue, scope) {
@@ -182,6 +184,49 @@ describe('Scope', function () {
                 });
             });
 
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
+
+        it('compares base on value if enabled', function () {
+            scope.anArray = [1, 2, 3];
+            scope.counter = 0;
+
+            scope.$watch(
+                function (scope) {
+                    return scope.anArray;
+                }, function (newValue, oldValue, scope) {
+                    scope.counter++;
+                },
+                true
+            );
+            
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+            
+            scope.anArray.push(4);
+            
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+            
+        });
+
+
+        it('correctly handles NaNs when', function () {
+            // NaN
+            scope.number = 0/0;
+            scope.counter = 0;
+            
+            scope.$watch(function (scope) {
+                return scope.number;
+            }, function (newValue, oldValue, scope) {
+                scope.counter++;
+            });
+            
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+            
             scope.$digest();
             expect(scope.counter).toBe(1);
         });

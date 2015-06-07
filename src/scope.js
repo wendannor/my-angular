@@ -9,12 +9,19 @@ function Scope() {
 
 }
 
-Scope.prototype.$watch = function (watchFn, listenerFn) {
+/**
+ * Create a watcher on the scope
+ * @param watchFn
+ * @param listenerFn
+ * @param valueEq if true then value based comparison is used
+ */
+Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
 
     var watcher = {
         watchFn: watchFn,
         listenerFn: listenerFn || function () {
         },
+        valueEq: !!valueEq,
         lastValue: initWatchVal
     };
     this.$$watchers.push(watcher);
@@ -29,9 +36,9 @@ Scope.prototype.$$digestOnce = function () {
     _.forEach(this.$$watchers, function (watcher) {
         newValue = watcher.watchFn(_this);
         oldValue = watcher.lastValue;
-        if (newValue !== oldValue) {
+        if (!_this.$$areEqual(newValue, oldValue, watcher.valueEq)) {
             _this.$$lastDirtyWatch = watcher;
-            watcher.lastValue = newValue;
+            watcher.lastValue = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
             watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), _this);
             dirty = true;
         } else if (_this.$$lastDirtyWatch === watcher) {
@@ -41,6 +48,10 @@ Scope.prototype.$$digestOnce = function () {
     return dirty;
 };
 
+
+/**
+ * Run a digest cycle
+ */
 Scope.prototype.$digest = function () {
     var dirty;
     
@@ -55,5 +66,16 @@ Scope.prototype.$digest = function () {
 
     if (ttl === 0) {
         throw '10 digest iterations reached';
+    }
+};
+
+
+Scope.prototype.$$areEqual = function (newValue, oldValue, valueEq) {
+    if (valueEq) {
+        return _.isEqual(newValue, oldValue);
+    } else {
+        return newValue === oldValue ||
+            // handle the NaN case
+            (typeof newValue === 'number' && typeof oldValue === 'number' && isNaN(newValue) && isNaN(oldValue));
     }
 };
