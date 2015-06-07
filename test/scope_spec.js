@@ -201,32 +201,32 @@ describe('Scope', function () {
                 },
                 true
             );
-            
+
             scope.$digest();
             expect(scope.counter).toBe(1);
-            
+
             scope.anArray.push(4);
-            
+
             scope.$digest();
             expect(scope.counter).toBe(2);
-            
+
         });
 
 
         it('correctly handles NaNs when', function () {
             // NaN
-            scope.number = 0/0;
+            scope.number = 0 / 0;
             scope.counter = 0;
-            
+
             scope.$watch(function (scope) {
                 return scope.number;
             }, function (newValue, oldValue, scope) {
                 scope.counter++;
             });
-            
+
             scope.$digest();
             expect(scope.counter).toBe(1);
-            
+
             scope.$digest();
             expect(scope.counter).toBe(1);
         });
@@ -234,22 +234,60 @@ describe('Scope', function () {
 
         it('exectures $eval\'ed function and returns result', function () {
             scope.aValue = 42;
-            
+
             var result = scope.$eval(function (scope) {
-                return scope.Avalue;
+                return scope.aValue;
             });
-            
+
             expect(result).toBe(42);
         });
 
         it('passes the scond $eval argument straight through', function () {
             scope.aValue = 42;
-            
+
             var result = scope.$eval(function (scope, arg) {
                 return scope.aValue + arg;
             }, 8);
-            
+
             expect(result).toBe(50);
+        });
+
+        it('executes $apply\'ed $apply function and start the digest', function () {
+            scope.aValue = 'darth vader';
+            scope.counter = 0;
+
+            scope.$watch(function (scope) {
+                return scope.aValue;
+            }, function (newValue, oldValue, scope) {
+                scope.counter++;
+            });
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.$apply(function (scope) {
+                scope.aValue = 'luke skywalker';
+            });
+            expect(scope.counter).toBe(2);
+        });
+
+        it('executes $evalAsync\'ed function later in the same cycle', function () {
+            scope.aAvalue = [1, 2, 3];
+            scope.asyncEvaluated = false;
+            scope.asyncEvaluatedImmediately = false;
+
+            scope.$watch(function (scope) {
+                return scope.aValue;
+            }, function (newValue, oldValue, scope) {
+                scope.$evalAsync(function (scope) {
+                    scope.asyncEvaluated = true;
+                });
+                scope.asyncEvaluatedImmediately = scope.asyncEvaluated;
+            });
+            
+            scope.$digest();
+            expect(scope.asyncEvaluated).toBe(true);
+            expect(scope.asyncEvaluatedImmediately).toBe(false);
         });
 
 

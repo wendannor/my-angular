@@ -26,6 +26,7 @@ Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
     };
     this.$$watchers.push(watcher);
     this.$$lastDirtyWatch = null;
+    this.$$asyncQueue = [];
 };
 
 Scope.prototype.$$digestOnce = function () {
@@ -60,6 +61,12 @@ Scope.prototype.$digest = function () {
 
     this.$$lastDirtyWatch = null;
     do {
+        
+        while (this.$$asyncQueue.length > 0) {
+            var asyncTask = this.$$asyncQueue.shift();
+            asyncTask.scope.$eval(asyncTask.expression);
+        }
+        
         dirty = this.$$digestOnce();
         ttl--;
     } while (dirty && ttl !== 0);
@@ -82,4 +89,16 @@ Scope.prototype.$$areEqual = function (newValue, oldValue, valueEq) {
 
 Scope.prototype.$eval = function (expr, arg) {
     return expr(this, arg);
+};
+
+Scope.prototype.$apply = function (fn) {
+    try {
+        return this.$eval(fn);
+    } finally {
+        this.$digest();
+    }
+};
+
+Scope.prototype.$evalAsync = function (expr) {
+    this.$$asyncQueue.push({scope: this, expression: expr});
 };
