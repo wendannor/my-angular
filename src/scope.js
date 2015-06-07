@@ -54,10 +54,10 @@ Scope.prototype.$$digestOnce = function () {
  */
 Scope.prototype.$digest = function () {
     var dirty;
-    
+
     // time to live, number of cycles we allow the digest loop to make
     var ttl = 10;
-    
+
     this.$$lastDirtyWatch = null;
     do {
         dirty = this.$$digestOnce();
@@ -78,4 +78,8 @@ Scope.prototype.$$areEqual = function (newValue, oldValue, valueEq) {
             // handle the NaN case
             (typeof newValue === 'number' && typeof oldValue === 'number' && isNaN(newValue) && isNaN(oldValue));
     }
+};
+
+Scope.prototype.$eval = function (expr, arg) {
+    return expr(this, arg);
 };
