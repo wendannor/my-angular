@@ -61,19 +61,21 @@ Scope.prototype.$digest = function () {
 
     this.$$lastDirtyWatch = null;
     do {
-        
+
         while (this.$$asyncQueue.length > 0) {
             var asyncTask = this.$$asyncQueue.shift();
             asyncTask.scope.$eval(asyncTask.expression);
         }
-        
-        dirty = this.$$digestOnce();
-        ttl--;
-    } while (dirty && ttl !== 0);
 
-    if (ttl === 0) {
-        throw '10 digest iterations reached';
-    }
+        dirty = this.$$digestOnce();
+
+        ttl--;
+        if ((dirty || this.$$asyncQueue.length) && ttl === 0) {
+            throw '10 digest iterations reached';
+        }
+
+    } while (dirty || this.$$asyncQueue.length);
+
 };
 
 
@@ -82,7 +84,7 @@ Scope.prototype.$$areEqual = function (newValue, oldValue, valueEq) {
         return _.isEqual(newValue, oldValue);
     } else {
         return newValue === oldValue ||
-            // handle the NaN case
+                // handle the NaN case
             (typeof newValue === 'number' && typeof oldValue === 'number' && isNaN(newValue) && isNaN(oldValue));
     }
 };
