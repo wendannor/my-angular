@@ -28,6 +28,7 @@ Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
     this.$$lastDirtyWatch = null;
     this.$$asyncQueue = [];
     this.$$phase = null;
+    this.$$applyAsyncQueue = [];
 };
 
 Scope.prototype.$$digestOnce = function () {
@@ -104,6 +105,22 @@ Scope.prototype.$apply = function (fn) {
         this.$clearPhase();
         this.$digest();
     }
+};
+
+Scope.prototype.$applyAsync = function (expr) {
+    var _this = this;
+    _this.$$applyAsyncQueue.push(function () {
+        _this.$eval(expr);
+    });
+
+    setTimeout(function () {
+        _this.$apply(function () {
+            while (_this.$$applyAsyncQueue.length) {
+                // calling the callback of apply
+                _this.$$applyAsyncQueue.shift()();
+            }
+        });
+    }, 0);
 };
 
 Scope.prototype.$evalAsync = function (expr) {
