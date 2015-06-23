@@ -425,6 +425,30 @@ describe('Scope', function () {
 
         });
 
+        it('coalesces many calls to $applyAsync', function (done) {
+            scope.counter = 0;
+            scope.aValue = 42;
+
+            scope.$watch(function (scope) {
+                scope.counter++;
+                return scope.aValue;
+            }, function (newValue, oldValue, scope) {
+            });
+            
+            scope.$applyAsync(function (scope) {
+                scope.aValue = 'abc';
+            });
+            scope.$applyAsync(function (scope) {
+                scope.aValue = 'xyz';
+            });
+            
+            setTimeout(function () {
+                expect(scope.counter).toBe(2);
+                done();
+            }, 50);
+        });
+
+
     });
 
 

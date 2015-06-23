@@ -29,6 +29,7 @@ Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
     this.$$asyncQueue = [];
     this.$$phase = null;
     this.$$applyAsyncQueue = [];
+    this.$$applyAsyncId = null;
 };
 
 Scope.prototype.$$digestOnce = function () {
@@ -88,7 +89,7 @@ Scope.prototype.$$areEqual = function (newValue, oldValue, valueEq) {
         return _.isEqual(newValue, oldValue);
     } else {
         return newValue === oldValue ||
-                // handle the NaN case
+            // handle the NaN case
             (typeof newValue === 'number' && typeof oldValue === 'number' && isNaN(newValue) && isNaN(oldValue));
     }
 };
@@ -113,14 +114,18 @@ Scope.prototype.$applyAsync = function (expr) {
         _this.$eval(expr);
     });
 
-    setTimeout(function () {
-        _this.$apply(function () {
-            while (_this.$$applyAsyncQueue.length) {
-                // calling the callback of apply
-                _this.$$applyAsyncQueue.shift()();
-            }
-        });
-    }, 0);
+    if (_this.$$applyAsyncId === null) {
+    _this.$$applyAsyncId = setTimeout(function () {
+            // we only want to digest once here, so we do not $apply every member of the queue
+            _this.$apply(function () {
+                while (_this.$$applyAsyncQueue.length) {
+                    // calling the callback of apply
+                    _this.$$applyAsyncQueue.shift()();
+                }
+            });
+            _this.$$applyAsyncId = null;
+        }, 0);
+    }
 };
 
 Scope.prototype.$evalAsync = function (expr) {
